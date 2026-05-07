@@ -67,7 +67,15 @@ function App() {
             onClick={handleSubmit}
             className="w-full bg-blue-600 hover:bg-blue-700 transition-all duration-300 text-white py-4 rounded-2xl text-lg font-semibold shadow-lg"
           >
-            {loading ? "Analyzing..." : "Analyze Resume"}
+            {loading ? (
+              <div className="flex items-center justify-center gap-3">
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+
+                <span>Analyzing...</span>
+              </div>
+            ) : (
+              "Analyze Resume"
+            )}
           </button>
         </div>
 
@@ -97,14 +105,20 @@ function App() {
               <p className="text-slate-400 mb-3">Missing Keywords</p>
 
               <div className="flex flex-wrap gap-3">
-                {result.missing_keywords.map((keyword, index) => (
-                  <span
-                    key={index}
-                    className="bg-red-500/20 text-red-300 px-4 py-2 rounded-full border border-red-500/30"
-                  >
-                    {keyword}
-                  </span>
-                ))}
+                {result.missing_keywords.length > 0 ? (
+                  result.missing_keywords.map((keyword, index) => (
+                    <span
+                      key={index}
+                      className="bg-red-500/20 text-red-300 px-4 py-2 rounded-full border border-red-500/30"
+                    >
+                      {keyword}
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-green-400 font-medium">
+                    No missing keywords 🎉
+                  </p>
+                )}
               </div>
             </div>
 
