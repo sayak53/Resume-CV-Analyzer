@@ -22,36 +22,63 @@ function App() {
   };
 
   return (
-    <div style={{ padding: "40px" }}>
-      <h1>Resume Analyzer</h1>
+    <div className="min-h-screen bg-gradient-to-br from-black via-slate-900 to-black flex items-center justify-center px-4">
+      <div className="w-full max-w-2xl bg-slate-950 border border-slate-800 rounded-3xl p-8 shadow-2xl">
+        <h1 className="text-5xl font-bold text-white text-center mb-8">
+          Resume Analyzer
+        </h1>
 
-      <input type="file" onChange={(e) => setFile(e.target.files[0])} />
+        <div className="space-y-6">
+          <input
+            type="file"
+            onChange={(e) => setFile(e.target.files[0])}
+            className="block w-full text-sm text-slate-300
+            file:mr-4 file:py-3 file:px-6
+            file:rounded-xl file:border-0
+            file:text-sm file:font-semibold
+            file:bg-blue-600 file:text-white
+            hover:file:bg-blue-700"
+          />
 
-      <br />
-      <br />
+          <textarea
+            placeholder="Paste Job Description..."
+            value={jd}
+            onChange={(e) => setJd(e.target.value)}
+            className="w-full h-40 bg-slate-900 border border-slate-700 rounded-2xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
 
-      <textarea
-        placeholder="Paste Job Description"
-        value={jd}
-        onChange={(e) => setJd(e.target.value)}
-        style={{
-          width: "300px",
-          height: "100px",
-        }}
-      />
-
-      <br />
-      <br />
-
-      <button onClick={handleSubmit}>Analyze</button>
-
-      {result && (
-        <div style={{ marginTop: "20px" }}>
-          <h2>Result</h2>
-
-          <pre>{JSON.stringify(result, null, 2)}</pre>
+          <button
+            onClick={handleSubmit}
+            className="w-full bg-blue-600 hover:bg-blue-700 transition-all duration-300 text-white py-4 rounded-2xl text-lg font-semibold shadow-lg"
+          >
+            Analyze Resume
+          </button>
         </div>
-      )}
+
+        {result && (
+          <div className="mt-10 bg-slate-900 border border-slate-700 rounded-2xl p-6">
+            <h2 className="text-3xl font-bold text-white mb-4 text-center">
+              Analysis Result
+            </h2>
+
+            <div className="text-center mb-6">
+              <p className="text-slate-400 mb-2">Match Score</p>
+
+              <h3 className="text-6xl font-bold text-green-400">
+                {result.score}%
+              </h3>
+            </div>
+
+            <div>
+              <p className="text-slate-400 mb-2">Resume Preview</p>
+
+              <div className="bg-black border border-slate-800 rounded-xl p-4 text-slate-300 max-h-60 overflow-y-auto">
+                {result.resume_preview}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
