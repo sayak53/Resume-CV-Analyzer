@@ -38,16 +38,23 @@ function App() {
         </h1>
 
         <div className="space-y-6">
-          <input
-            type="file"
-            onChange={(e) => setFile(e.target.files[0])}
-            className="block w-full text-sm text-slate-300
-            file:mr-4 file:py-3 file:px-6
-            file:rounded-xl file:border-0
-            file:text-sm file:font-semibold
-            file:bg-blue-600 file:text-white
-            hover:file:bg-blue-700"
-          />
+          <label className="border-2 border-dashed border-slate-700 rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 transition-all duration-300 bg-slate-900">
+            <input
+              type="file"
+              className="hidden"
+              onChange={(e) => setFile(e.target.files[0])}
+            />
+
+            <p className="text-white text-lg font-semibold mb-2">
+              Upload Resume
+            </p>
+
+            <p className="text-slate-400 text-sm">PDF files only</p>
+
+            {file && (
+              <p className="mt-4 text-blue-400 font-medium">{file.name}</p>
+            )}
+          </label>
 
           <textarea
             placeholder="Paste Job Description..."
