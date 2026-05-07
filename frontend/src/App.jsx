@@ -85,20 +85,56 @@ function App() {
               Analysis Result
             </h2>
 
-            <div className="text-center mb-8">
-              <p className="text-slate-400 mb-2">Match Score</p>
+            <div className="flex flex-col items-center justify-center mb-10">
+              <p className="text-slate-400 mb-6 text-lg">Match Score</p>
 
-              <h3
-                className={`text-6xl font-bold ${
-                  result.score >= 70
-                    ? "text-green-400"
-                    : result.score >= 40
-                      ? "text-yellow-400"
-                      : "text-red-400"
-                }`}
-              >
-                {result.score}%
-              </h3>
+              <div className="relative w-48 h-48 flex items-center justify-center">
+                <svg className="w-48 h-48 rotate-[-90deg]">
+                  <circle
+                    cx="96"
+                    cy="96"
+                    r="80"
+                    stroke="#1e293b"
+                    strokeWidth="14"
+                    fill="transparent"
+                  />
+
+                  <circle
+                    cx="96"
+                    cy="96"
+                    r="80"
+                    stroke={
+                      result.score >= 70
+                        ? "#4ade80"
+                        : result.score >= 40
+                          ? "#facc15"
+                          : "#f87171"
+                    }
+                    strokeWidth="14"
+                    fill="transparent"
+                    strokeDasharray={2 * Math.PI * 80}
+                    strokeDashoffset={
+                      2 * Math.PI * 80 -
+                      (result.score / 100) * (2 * Math.PI * 80)
+                    }
+                    strokeLinecap="round"
+                  />
+                </svg>
+
+                <div className="absolute text-center">
+                  <h3
+                    className={`text-5xl font-bold ${
+                      result.score >= 70
+                        ? "text-green-400"
+                        : result.score >= 40
+                          ? "text-yellow-400"
+                          : "text-red-400"
+                    }`}
+                  >
+                    {result.score}%
+                  </h3>
+                </div>
+              </div>
             </div>
 
             <div className="mb-6">
