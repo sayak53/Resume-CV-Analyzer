@@ -7,6 +7,27 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 app = FastAPI()
 
+SKILLS_DB = [
+    "python",
+    "java",
+    "javascript",
+    "react",
+    "nodejs",
+    "html",
+    "css",
+    "sql",
+    "mysql",
+    "mongodb",
+    "fastapi",
+    "django",
+    "flask",
+    "machine learning",
+    "ai",
+    "dbms",
+    "git",
+    "github",
+]
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -27,7 +48,22 @@ def extract_text(file):
     return text
 
 
+def extract_skills(text):
+
+    text = text.lower()
+
+    found_skills = []
+
+    for skill in SKILLS_DB:
+
+        if skill in text:
+            found_skills.append(skill)
+
+    return found_skills
+
+
 def get_similarity(resume, job_description):
+
     documents = [resume, job_description]
 
     cv = TfidfVectorizer(stop_words="english")
@@ -37,17 +73,6 @@ def get_similarity(resume, job_description):
     similarity = cosine_similarity(matrix)[0][1]
 
     return round(similarity * 100, 2)
-
-
-def get_missing_keywords(resume, job_description):
-
-    resume_words = set(resume.lower().split())
-
-    jd_words = set(job_description.lower().split())
-
-    missing = jd_words - resume_words
-
-    return list(missing)[:10]
 
 
 @app.get("/")
@@ -62,12 +87,22 @@ async def analyze_resume(
 ):
     text = extract_text(resume.file)
 
-    score = get_similarity(text, job_description)
+    resume_skills = extract_skills(text)
 
-    missing_keywords = get_missing_keywords(text, job_description)
+    jd_skills = extract_skills(job_description)
+
+    matched_skills = list(set(resume_skills) & set(jd_skills))
+
+    missing_keywords = list(set(jd_skills) - set(resume_skills))
+
+    if len(jd_skills) > 0:
+        score = round((len(matched_skills) / len(jd_skills)) * 100, 2)
+    else:
+        score = 0
 
     return {
         "score": score,
+        "matched_skills": matched_skills,
         "missing_keywords": missing_keywords,
         "resume_preview": text[:300],
         "job_description": job_description
