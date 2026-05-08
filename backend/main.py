@@ -58,7 +58,9 @@ def extract_skills(text):
 
     for skill in SKILLS_DB:
 
-        if skill in text:
+        pattern = r"\b" + re.escape(skill) + r"\b"
+
+        if re.search(pattern, text):
             found_skills.append(skill)
 
     return found_skills
