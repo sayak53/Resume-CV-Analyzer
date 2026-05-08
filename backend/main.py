@@ -2,7 +2,7 @@ from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from PyPDF2 import PdfReader
 
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 app = FastAPI()
@@ -30,7 +30,7 @@ def extract_text(file):
 def get_similarity(resume, job_description):
     documents = [resume, job_description]
 
-    cv = CountVectorizer()
+    cv = TfidfVectorizer(stop_words="english")
 
     matrix = cv.fit_transform(documents)
 
