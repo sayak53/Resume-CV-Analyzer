@@ -108,7 +108,7 @@ function App() {
 
             <div className="flex justify-center mb-8">
               <div className="relative w-56 h-56">
-                <svg className="w-56 h-56 rotate-[-90deg]">
+                <svg className="w-56 h-56 -rotate-90">
                   <circle
                     cx="112"
                     cy="112"
