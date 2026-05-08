@@ -2,8 +2,7 @@ from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from PyPDF2 import PdfReader
 
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
+import re
 
 app = FastAPI()
 
@@ -43,7 +42,10 @@ def extract_text(file):
     text = ""
 
     for page in reader.pages:
-        text += page.extract_text()
+        extracted = page.extract_text()
+
+        if extracted:
+            text += extracted
 
     return text
 
@@ -62,17 +64,17 @@ def extract_skills(text):
     return found_skills
 
 
-def get_similarity(resume, job_description):
+def extract_experience(text):
 
-    documents = [resume, job_description]
+    pattern = r"(\d+)\+?\s+years?"
 
-    cv = TfidfVectorizer(stop_words="english")
+    matches = re.findall(pattern, text.lower())
 
-    matrix = cv.fit_transform(documents)
+    if matches:
+        years = [int(year) for year in matches]
+        return max(years)
 
-    similarity = cosine_similarity(matrix)[0][1]
-
-    return round(similarity * 100, 2)
+    return 0
 
 
 @app.get("/")
@@ -85,9 +87,12 @@ async def analyze_resume(
     resume: UploadFile = File(...),
     job_description: str = Form(...)
 ):
-    text = extract_text(resume.file)
 
-    resume_skills = extract_skills(text)
+    resume_text = extract_text(resume.file)
+
+    experience_years = extract_experience(resume_text)
+
+    resume_skills = extract_skills(resume_text)
 
     jd_skills = extract_skills(job_description)
 
@@ -96,14 +101,15 @@ async def analyze_resume(
     missing_keywords = list(set(jd_skills) - set(resume_skills))
 
     if len(jd_skills) > 0:
-        score = round((len(matched_skills) / len(jd_skills)) * 100, 2)
+        score = (len(matched_skills) / len(jd_skills)) * 100
     else:
         score = 0
 
     return {
-        "score": score,
+        "score": round(score, 2),
         "matched_skills": matched_skills,
         "missing_keywords": missing_keywords,
-        "resume_preview": text[:300],
+        "experience": experience_years,
+        "resume_preview": resume_text[:500],
         "job_description": job_description
     }

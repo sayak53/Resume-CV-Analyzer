@@ -2,128 +2,133 @@ import { useState } from "react";
 
 function App() {
   const [file, setFile] = useState(null);
-  const [jd, setJd] = useState("");
+  const [jobDescription, setJobDescription] = useState("");
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async () => {
-    setLoading(true);
+  async function handleAnalyze() {
+    if (!file || !jobDescription) {
+      alert("Please upload resume and add job description");
+      return;
+    }
 
-    setResult(null);
+    setLoading(true);
 
     const formData = new FormData();
 
     formData.append("resume", file);
-    formData.append("job_description", jd);
+    formData.append("job_description", jobDescription);
 
-    const response = await fetch("http://127.0.0.1:8000/analyze/", {
-      method: "POST",
-      body: formData,
-    });
+    try {
+      const response = await fetch("http://127.0.0.1:8000/analyze/", {
+        method: "POST",
+        body: formData,
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    setTimeout(() => {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       setResult(data);
+    } catch (error) {
+      console.log(error);
+      alert("Something went wrong");
+    }
 
-      setLoading(false);
-    }, 1000);
-  };
+    setLoading(false);
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-slate-900 to-black flex items-center justify-center px-4 py-10">
-      <div className="w-full max-w-2xl bg-slate-950 border border-slate-800 rounded-3xl p-8 shadow-2xl">
-        <h1 className="text-5xl font-bold text-white text-center mb-8">
+    <div className="min-h-screen bg-[#020617] flex justify-center items-center p-8">
+      <div className="w-full max-w-4xl bg-[#07122b] border border-slate-800 rounded-3xl p-8 shadow-2xl">
+        <h1 className="text-6xl font-bold text-white text-center mb-10">
           Resume Analyzer
         </h1>
 
-        <div className="space-y-6">
-          <label className="border-2 border-dashed border-slate-700 rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 transition-all duration-300 bg-slate-900">
-            <input
-              type="file"
-              className="hidden"
-              onChange={(e) => setFile(e.target.files[0])}
-            />
-
-            <p className="text-white text-lg font-semibold mb-2">
+        <div className="mb-8">
+          <label
+            htmlFor="resumeUpload"
+            className="border-2 border-dashed border-slate-600 rounded-3xl p-12 flex flex-col items-center justify-center cursor-pointer bg-[#0b1736] hover:border-blue-500 transition"
+          >
+            <p className="text-white text-2xl font-semibold mb-3">
               Upload Resume
             </p>
 
-            <p className="text-slate-400 text-sm">PDF files only</p>
+            <p className="text-slate-400 mb-5">PDF files only</p>
 
             {file && (
-              <p className="mt-4 text-blue-400 font-medium">{file.name}</p>
+              <p className="text-blue-400 font-semibold text-xl">{file.name}</p>
             )}
           </label>
 
-          <textarea
-            placeholder="Paste Job Description..."
-            value={jd}
-            onChange={(e) => setJd(e.target.value)}
-            className="w-full h-40 bg-slate-900 border border-slate-700 rounded-2xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          <input
+            id="resumeUpload"
+            type="file"
+            accept=".pdf"
+            onChange={(e) => setFile(e.target.files[0])}
+            className="hidden"
           />
-
-          <button
-            onClick={handleSubmit}
-            className="w-full bg-blue-600 hover:bg-blue-700 transition-all duration-300 text-white py-4 rounded-2xl text-lg font-semibold shadow-lg"
-          >
-            {loading ? (
-              <div className="flex items-center justify-center gap-3">
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-
-                <span>Analyzing...</span>
-              </div>
-            ) : (
-              "Analyze Resume"
-            )}
-          </button>
         </div>
 
+        <textarea
+          placeholder="Paste Job Description Here..."
+          value={jobDescription}
+          onChange={(e) => setJobDescription(e.target.value)}
+          className="w-full h-52 bg-[#0b1736] border border-slate-700 rounded-3xl p-6 text-white text-2xl outline-none resize-none mb-8"
+        />
+
+        <button
+          onClick={handleAnalyze}
+          disabled={loading}
+          className="w-full bg-blue-600 hover:bg-blue-700 transition text-white text-2xl font-bold py-6 rounded-3xl mb-10"
+        >
+          {loading ? "Analyzing..." : "Analyze Resume"}
+        </button>
+
         {result && (
-          <div className="mt-10 bg-slate-900 border border-slate-700 rounded-2xl p-6 animate-pulse">
-            <h2 className="text-3xl font-bold text-white mb-4 text-center">
+          <div className="bg-[#0b1736] border border-slate-700 rounded-3xl p-10">
+            <h2 className="text-5xl font-bold text-white text-center mb-8">
               Analysis Result
             </h2>
 
-            <div className="flex flex-col items-center justify-center mb-10">
-              <p className="text-slate-400 mb-6 text-lg">Match Score</p>
+            <h3 className="text-slate-400 text-xl text-center mb-6">
+              Match Score
+            </h3>
 
-              <div className="relative w-48 h-48 flex items-center justify-center">
-                <svg className="w-48 h-48 rotate-[-90deg]">
+            <div className="flex justify-center mb-8">
+              <div className="relative w-64 h-64">
+                <svg className="w-64 h-64 rotate-[-90deg]">
                   <circle
-                    cx="96"
-                    cy="96"
-                    r="80"
+                    cx="128"
+                    cy="128"
+                    r="90"
                     stroke="#1e293b"
-                    strokeWidth="14"
+                    strokeWidth="18"
                     fill="transparent"
                   />
 
                   <circle
-                    cx="96"
-                    cy="96"
-                    r="80"
+                    cx="128"
+                    cy="128"
+                    r="90"
                     stroke={
                       result.score >= 70
-                        ? "#4ade80"
+                        ? "#00e676"
                         : result.score >= 40
-                          ? "#facc15"
-                          : "#f87171"
+                          ? "#ffcc00"
+                          : "#ff5c5c"
                     }
-                    strokeWidth="14"
+                    strokeWidth="18"
                     fill="transparent"
-                    strokeDasharray={2 * Math.PI * 80}
-                    strokeDashoffset={
-                      2 * Math.PI * 80 -
-                      (result.score / 100) * (2 * Math.PI * 80)
-                    }
                     strokeLinecap="round"
+                    strokeDasharray={565}
+                    strokeDashoffset={565 - (565 * result.score) / 100}
                   />
                 </svg>
 
-                <div className="absolute text-center">
-                  <h3
-                    className={`text-5xl font-bold ${
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span
+                    className={`text-6xl font-bold ${
                       result.score >= 70
                         ? "text-green-400"
                         : result.score >= 40
@@ -132,37 +137,67 @@ function App() {
                     }`}
                   >
                     {result.score}%
-                  </h3>
+                  </span>
                 </div>
               </div>
             </div>
 
-            <div className="mb-6">
-              <p className="text-slate-400 mb-3">Missing Keywords</p>
+            <p className="text-slate-300 text-lg text-center mb-10">
+              Experience:{" "}
+              <span className="text-white font-semibold">
+                {result.experience} Years
+              </span>
+            </p>
 
-              <div className="flex flex-wrap gap-3">
+            <div className="mb-10">
+              <h3 className="text-slate-400 text-2xl mb-5">Missing Keywords</h3>
+
+              <div className="flex flex-wrap gap-4">
                 {result.missing_keywords.length > 0 ? (
                   result.missing_keywords.map((keyword, index) => (
                     <span
                       key={index}
-                      className="bg-red-500/20 text-red-300 px-4 py-2 rounded-full border border-red-500/30"
+                      className="bg-red-900/40 border border-red-600 text-red-300 px-6 py-3 rounded-full text-xl"
                     >
                       {keyword}
                     </span>
                   ))
                 ) : (
-                  <p className="text-green-400 font-medium">
+                  <p className="text-green-400 text-2xl font-semibold">
                     No missing keywords 🎉
                   </p>
                 )}
               </div>
             </div>
 
-            <div>
-              <p className="text-slate-400 mb-2">Resume Preview</p>
+            <div className="mb-10">
+              <h3 className="text-slate-400 text-2xl mb-5">Matched Skills</h3>
 
-              <div className="bg-black border border-slate-800 rounded-xl p-4 text-slate-300 max-h-60 overflow-y-auto leading-7">
-                {result.resume_preview}
+              <div className="flex flex-wrap gap-4">
+                {result.matched_skills.length > 0 ? (
+                  result.matched_skills.map((skill, index) => (
+                    <span
+                      key={index}
+                      className="bg-green-900/30 border border-green-600 text-green-300 px-6 py-3 rounded-full text-xl"
+                    >
+                      {skill}
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-red-400 text-xl">
+                    No matched skills found
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-slate-400 text-2xl mb-5">Resume Preview</h3>
+
+              <div className="bg-black rounded-3xl p-6 max-h-72 overflow-y-auto">
+                <p className="text-white text-xl leading-10 whitespace-pre-wrap">
+                  {result.resume_preview}
+                </p>
               </div>
             </div>
           </div>
