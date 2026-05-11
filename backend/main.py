@@ -6,26 +6,26 @@ import re
 
 app = FastAPI()
 
-SKILLS_DB = [
-    "python",
-    "java",
-    "javascript",
-    "react",
-    "nodejs",
-    "html",
-    "css",
-    "sql",
-    "mysql",
-    "mongodb",
-    "fastapi",
-    "django",
-    "flask",
-    "machine learning",
-    "ai",
-    "dbms",
-    "git",
-    "github",
-]
+SKILLS_DB = {
+    "python": 10,
+    "java": 9,
+    "javascript": 9,
+    "react": 9,
+    "nodejs": 8,
+    "html": 4,
+    "css": 4,
+    "sql": 8,
+    "mysql": 7,
+    "mongodb": 7,
+    "fastapi": 8,
+    "django": 8,
+    "flask": 7,
+    "machine learning": 10,
+    "ai": 10,
+    "dbms": 6,
+    "git": 3,
+    "github": 3,
+}
 
 app.add_middleware(
     CORSMiddleware,
@@ -56,7 +56,7 @@ def extract_skills(text):
 
     found_skills = []
 
-    for skill in SKILLS_DB:
+    for skill in SKILLS_DB.keys():
 
         pattern = r"\b" + re.escape(skill) + r"\b"
 
