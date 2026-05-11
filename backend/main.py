@@ -102,8 +102,17 @@ async def analyze_resume(
 
     missing_keywords = list(set(jd_skills) - set(resume_skills))
 
-    if len(jd_skills) > 0:
-        score = (len(matched_skills) / len(jd_skills)) * 100
+    total_jd_weight = 0
+    matched_weight = 0
+
+    for skill in jd_skills:
+        total_jd_weight += SKILLS_DB.get(skill, 1)
+
+    for skill in matched_skills:
+        matched_weight += SKILLS_DB.get(skill, 1)
+
+    if total_jd_weight > 0:
+        score = (matched_weight / total_jd_weight) * 100
     else:
         score = 0
 
