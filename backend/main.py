@@ -117,6 +117,48 @@ def detect_resume_sections(text):
     return sections
 
 
+def generate_summary(score, matched_skills, missing_keywords, experience):
+
+    summary = ""
+
+    if score >= 75:
+        summary += "Your resume is highly aligned with the job description. "
+
+    elif score >= 50:
+        summary += "Your resume matches the job description moderately well. "
+
+    else:
+        summary += "Your resume has a low match with the job description. "
+
+    if len(matched_skills) > 0:
+
+        summary += (
+            "Strong matching skills include: "
+            + ", ".join(matched_skills)
+            + ". "
+        )
+
+    if len(missing_keywords) > 0:
+
+        summary += (
+            "You may improve your resume by adding skills or projects related to: "
+            + ", ".join(missing_keywords)
+            + ". "
+        )
+
+    if experience == 0:
+
+        summary += (
+            "Adding internships, freelance work, or personal projects may improve your profile."
+        )
+
+    else:
+
+        summary += f"You have {experience} years of experience."
+
+    return summary
+
+
 @app.get("/")
 def home():
     return {"message": "Backend is running 🚀"}
@@ -149,19 +191,29 @@ async def analyze_resume(
 
     score = round(score, 2)
 
+    summary = generate_summary(
+        score,
+        matched_skills,
+        missing_keywords,
+        experience_years
+    )
+
     suggestions = []
 
     for keyword in missing_keywords:
+
         suggestions.append(
             f"Try adding projects or experience related to '{keyword}'."
         )
 
     if experience_years == 0:
+
         suggestions.append(
             "Add internships, freelance work, or personal projects to showcase experience."
         )
 
     if score < 50:
+
         suggestions.append(
             "Your resume matches less than 50% of the job description. Consider improving your skills section."
         )
@@ -173,6 +225,7 @@ async def analyze_resume(
         "experience": experience_years,
         "resume_sections": resume_sections,
         "suggestions": suggestions,
+        "summary": summary,
         "resume_preview": resume_text[:800],
         "job_description": job_description
     }
