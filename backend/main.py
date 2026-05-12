@@ -25,6 +25,10 @@ SKILLS_DB = {
     "dbms": 6,
     "git": 3,
     "github": 3,
+    "aws": 9,
+    "docker": 8,
+    "kubernetes": 9,
+    "postgresql": 8,
 }
 
 app.add_middleware(
