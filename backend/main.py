@@ -6,30 +6,30 @@ import re
 
 app = FastAPI()
 
-SKILLS_DB = {
-    "python": 10,
-    "java": 9,
-    "javascript": 9,
-    "react": 9,
-    "nodejs": 8,
-    "html": 4,
-    "css": 4,
-    "sql": 8,
-    "mysql": 7,
-    "mongodb": 7,
-    "fastapi": 8,
-    "django": 8,
-    "flask": 7,
-    "machine learning": 10,
-    "ai": 10,
-    "dbms": 6,
-    "git": 3,
-    "github": 3,
-    "aws": 9,
-    "docker": 8,
-    "kubernetes": 9,
-    "postgresql": 8,
-}
+SKILLS_DB = [
+    "python",
+    "java",
+    "javascript",
+    "react",
+    "nodejs",
+    "html",
+    "css",
+    "sql",
+    "mysql",
+    "mongodb",
+    "fastapi",
+    "django",
+    "flask",
+    "machine learning",
+    "ai",
+    "dbms",
+    "git",
+    "github",
+    "docker",
+    "kubernetes",
+    "aws",
+    "postgresql",
+]
 
 app.add_middleware(
     CORSMiddleware,
@@ -41,11 +41,13 @@ app.add_middleware(
 
 
 def extract_text(file):
+
     reader = PdfReader(file)
 
     text = ""
 
     for page in reader.pages:
+
         extracted = page.extract_text()
 
         if extracted:
@@ -60,7 +62,7 @@ def extract_skills(text):
 
     found_skills = []
 
-    for skill in SKILLS_DB.keys():
+    for skill in SKILLS_DB:
 
         pattern = r"\b" + re.escape(skill) + r"\b"
 
@@ -77,10 +79,42 @@ def extract_experience(text):
     matches = re.findall(pattern, text.lower())
 
     if matches:
+
         years = [int(year) for year in matches]
+
         return max(years)
 
     return 0
+
+
+def detect_resume_sections(text):
+
+    text = text.lower()
+
+    sections = {
+        "skills": False,
+        "projects": False,
+        "education": False,
+        "experience": False,
+        "certifications": False,
+    }
+
+    if "skills" in text:
+        sections["skills"] = True
+
+    if "project" in text or "projects" in text:
+        sections["projects"] = True
+
+    if "education" in text:
+        sections["education"] = True
+
+    if "experience" in text:
+        sections["experience"] = True
+
+    if "certification" in text or "certifications" in text:
+        sections["certifications"] = True
+
+    return sections
 
 
 @app.get("/")
@@ -98,6 +132,8 @@ async def analyze_resume(
 
     experience_years = extract_experience(resume_text)
 
+    resume_sections = detect_resume_sections(resume_text)
+
     resume_skills = extract_skills(resume_text)
 
     jd_skills = extract_skills(job_description)
@@ -106,31 +142,19 @@ async def analyze_resume(
 
     missing_keywords = list(set(jd_skills) - set(resume_skills))
 
-    total_jd_weight = 0
-    matched_weight = 0
-
-    for skill in jd_skills:
-        total_jd_weight += SKILLS_DB.get(skill, 1)
-
-    for skill in matched_skills:
-        matched_weight += SKILLS_DB.get(skill, 1)
-
-    if total_jd_weight > 0:
-        score = (matched_weight / total_jd_weight) * 100
+    if len(jd_skills) > 0:
+        score = (len(matched_skills) / len(jd_skills)) * 100
     else:
         score = 0
 
-    # -----------------------------
-    # Suggestions Logic
-    # -----------------------------
+    score = round(score, 2)
 
     suggestions = []
 
-    if missing_keywords:
-        for keyword in missing_keywords:
-            suggestions.append(
-                f"Try adding projects or experience related to '{keyword}'."
-            )
+    for keyword in missing_keywords:
+        suggestions.append(
+            f"Try adding projects or experience related to '{keyword}'."
+        )
 
     if experience_years == 0:
         suggestions.append(
@@ -142,17 +166,13 @@ async def analyze_resume(
             "Your resume matches less than 50% of the job description. Consider improving your skills section."
         )
 
-    if "project" not in resume_text.lower():
-        suggestions.append(
-            "Add a dedicated Projects section to strengthen your resume."
-        )
-
     return {
-        "score": round(score, 2),
+        "score": score,
         "matched_skills": matched_skills,
         "missing_keywords": missing_keywords,
         "experience": experience_years,
+        "resume_sections": resume_sections,
         "suggestions": suggestions,
-        "resume_preview": resume_text[:500],
+        "resume_preview": resume_text[:800],
         "job_description": job_description
     }

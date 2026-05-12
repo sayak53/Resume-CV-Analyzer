@@ -159,6 +159,72 @@ function App() {
                 {result.experience} Years
               </span>
             </p>
+            <div className="mb-10">
+              <h3 className="text-slate-400 text-3xl mb-5">Resume Sections</h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div
+                  className={`p-4 rounded-2xl border ${
+                    result.resume_sections.skills
+                      ? "border-green-500 bg-green-900/20"
+                      : "border-red-500 bg-red-900/20"
+                  }`}
+                >
+                  <p className="text-xl font-semibold text-white">
+                    {result.resume_sections.skills ? "✅" : "❌"} Skills
+                  </p>
+                </div>
+
+                <div
+                  className={`p-4 rounded-2xl border ${
+                    result.resume_sections.projects
+                      ? "border-green-500 bg-green-900/20"
+                      : "border-red-500 bg-red-900/20"
+                  }`}
+                >
+                  <p className="text-xl font-semibold text-white">
+                    {result.resume_sections.projects ? "✅" : "❌"} Projects
+                  </p>
+                </div>
+
+                <div
+                  className={`p-4 rounded-2xl border ${
+                    result.resume_sections.education
+                      ? "border-green-500 bg-green-900/20"
+                      : "border-red-500 bg-red-900/20"
+                  }`}
+                >
+                  <p className="text-xl font-semibold text-white">
+                    {result.resume_sections.education ? "✅" : "❌"} Education
+                  </p>
+                </div>
+
+                <div
+                  className={`p-4 rounded-2xl border ${
+                    result.resume_sections.experience
+                      ? "border-green-500 bg-green-900/20"
+                      : "border-red-500 bg-red-900/20"
+                  }`}
+                >
+                  <p className="text-xl font-semibold text-white">
+                    {result.resume_sections.experience ? "✅" : "❌"} Experience
+                  </p>
+                </div>
+
+                <div
+                  className={`p-4 rounded-2xl border ${
+                    result.resume_sections.certifications
+                      ? "border-green-500 bg-green-900/20"
+                      : "border-red-500 bg-red-900/20"
+                  }`}
+                >
+                  <p className="text-xl font-semibold text-white">
+                    {result.resume_sections.certifications ? "✅" : "❌"}{" "}
+                    Certifications
+                  </p>
+                </div>
+              </div>
+            </div>
 
             <div className="mb-10">
               <h3 className="text-slate-400 text-3xl mb-5">Missing Keywords</h3>
