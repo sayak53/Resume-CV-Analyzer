@@ -1,35 +1,35 @@
 from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from PyPDF2 import PdfReader
-
 import re
 
 app = FastAPI()
 
-SKILLS_DB = [
-    "python",
-    "java",
-    "javascript",
-    "react",
-    "nodejs",
-    "html",
-    "css",
-    "sql",
-    "mysql",
-    "mongodb",
-    "fastapi",
-    "django",
-    "flask",
-    "machine learning",
-    "ai",
-    "dbms",
-    "git",
-    "github",
-    "docker",
-    "kubernetes",
-    "aws",
-    "postgresql",
-]
+# Weighted Skills Database
+SKILLS_DB = {
+    "python": 10,
+    "java": 9,
+    "javascript": 9,
+    "react": 9,
+    "nodejs": 8,
+    "html": 4,
+    "css": 4,
+    "sql": 8,
+    "mysql": 7,
+    "mongodb": 7,
+    "fastapi": 8,
+    "django": 8,
+    "flask": 7,
+    "machine learning": 10,
+    "ai": 10,
+    "dbms": 6,
+    "git": 3,
+    "github": 3,
+    "docker": 8,
+    "kubernetes": 9,
+    "aws": 9,
+    "postgresql": 8,
+}
 
 app.add_middleware(
     CORSMiddleware,
@@ -49,7 +49,7 @@ def extract_text(file):
         extracted = page.extract_text()
 
         if extracted:
-            text += extracted + " "
+            text += extracted
 
     return text
 
@@ -60,7 +60,7 @@ def extract_skills(text):
 
     found_skills = []
 
-    for skill in SKILLS_DB:
+    for skill in SKILLS_DB.keys():
 
         pattern = r"\b" + re.escape(skill) + r"\b"
 
@@ -72,12 +72,23 @@ def extract_skills(text):
 
 def extract_experience(text):
 
-    pattern = r"(\d+)\+?\s+years?"
+    text = text.lower()
 
-    matches = re.findall(pattern, text.lower())
+    patterns = [
+        r"(\d+)\+?\s+years?",
+        r"experience\s*:\s*(\d+)",
+        r"(\d+)\s+yrs?",
+    ]
 
-    if matches:
-        years = [int(year) for year in matches]
+    years = []
+
+    for pattern in patterns:
+        matches = re.findall(pattern, text)
+
+        for match in matches:
+            years.append(int(match))
+
+    if years:
         return max(years)
 
     return 0
@@ -87,68 +98,47 @@ def check_resume_sections(text):
 
     text = text.lower()
 
-    sections = {
-        "skills": False,
-        "projects": False,
-        "education": False,
-        "experience": False,
-        "certifications": False,
+    return {
+        "skills": "skills" in text,
+        "projects": "project" in text or "projects" in text,
+        "education": "education" in text,
+        "experience": (
+            "experience" in text
+            and extract_experience(text) > 0
+        ),
+        "certifications": (
+            "certification" in text
+            or "certifications" in text
+            or "certificate" in text
+        ),
     }
-
-    if re.search(r"\bskills\b", text):
-        sections["skills"] = True
-
-    if re.search(r"\bprojects\b", text):
-        sections["projects"] = True
-
-    if re.search(r"\beducation\b", text):
-        sections["education"] = True
-
-    experience_patterns = [
-        r"\bwork experience\b",
-        r"\bprofessional experience\b",
-        r"\bemployment history\b",
-        r"\binternship experience\b",
-    ]
-
-    for pattern in experience_patterns:
-        if re.search(pattern, text):
-            sections["experience"] = True
-            break
-
-    if re.search(r"\bcertifications\b|\bcertificates\b", text):
-        sections["certifications"] = True
-
-    return sections
 
 
 def generate_summary(score, matched_skills, experience):
 
-    if score >= 75:
-        level = "highly aligned"
+    if score >= 80:
+        return (
+            f"Your resume is highly aligned with the job description. "
+            f"Strong matching skills include: {', '.join(matched_skills)}. "
+            f"You have {experience} years of experience."
+        )
+
     elif score >= 50:
-        level = "moderately aligned"
+        return (
+            f"Your resume matches many important job requirements. "
+            f"You should improve a few missing skills to increase your ATS score."
+        )
+
     else:
-        level = "needs improvement"
-
-    skills_text = ", ".join(matched_skills[:5])
-
-    if not skills_text:
-        skills_text = "no major matching skills"
-
-    summary = (
-        f"Your resume is {level} with the job description. "
-        f"Strong matching skills include: {skills_text}. "
-        f"You have {experience} years of experience."
-    )
-
-    return summary
+        return (
+            f"Your resume currently has a low match with the job description. "
+            f"Consider improving your technical skills, projects, and experience sections."
+        )
 
 
 def generate_suggestions(
     missing_keywords,
     experience_years,
-    score,
     resume_sections
 ):
 
@@ -161,32 +151,22 @@ def generate_suggestions(
 
     if experience_years == 0:
         suggestions.append(
-            "Add internships, freelance work, or personal projects to showcase experience."
-        )
-
-    if score < 50:
-        suggestions.append(
-            "Your resume matches less than 50% of the job description. Consider improving your skills section."
-        )
+            "Your resume lacks professional experience. Add internships, freelance work, open-source contributions, or personal projects."
+    )
 
     if not resume_sections["projects"]:
         suggestions.append(
-            "Add a dedicated Projects section to strengthen your resume."
-        )
-
-    if not resume_sections["experience"]:
-        suggestions.append(
-            "Add an Experience section to improve ATS impact."
+            "Add a strong projects section with real-world applications."
         )
 
     if not resume_sections["education"]:
         suggestions.append(
-            "Add an Education section to improve resume completeness."
+            "Include your education details for better resume completeness."
         )
 
     if not resume_sections["certifications"]:
         suggestions.append(
-            "Adding certifications can improve your resume credibility."
+            "Adding certifications can improve resume credibility."
         )
 
     return suggestions
@@ -207,44 +187,53 @@ async def analyze_resume(
 
     experience_years = extract_experience(resume_text)
 
+    resume_sections = check_resume_sections(resume_text)
+
     resume_skills = extract_skills(resume_text)
 
     jd_skills = extract_skills(job_description)
 
-    matched_skills = list(set(resume_skills) & set(jd_skills))
+    matched_skills = list(
+        set(resume_skills) & set(jd_skills)
+    )
 
-    missing_keywords = list(set(jd_skills) - set(resume_skills))
+    missing_keywords = list(
+        set(jd_skills) - set(resume_skills)
+    )
 
-    resume_sections = check_resume_sections(resume_text)
+    # Weighted Score Calculation
+    total_possible_score = sum(
+        SKILLS_DB[skill]
+        for skill in jd_skills
+    )
 
-    score = 0
+    matched_score = sum(
+        SKILLS_DB[skill]
+        for skill in matched_skills
+    )
 
-    # Skills Score (70%)
-    if len(jd_skills) > 0:
-        skills_score = (
-            len(matched_skills) / len(jd_skills)
-        ) * 70
+    if total_possible_score > 0:
+        score = (
+            matched_score / total_possible_score
+        ) * 100
     else:
-        skills_score = 0
+        score = 0
 
-    score += skills_score
+    # Resume quality penalties
+    if experience_years == 0:
+        score -= 10
 
-    # Experience Section (10%)
-    if resume_sections["experience"]:
-        score += 10
+    if not resume_sections["education"]:
+        score -= 5
 
-    # Education Section (10%)
-    if resume_sections["education"]:
-        score += 10
+    if not resume_sections["projects"]:
+        score -= 5
 
-    # Projects Section (10%)
-    if resume_sections["projects"]:
-        score += 10
+    # Prevent negative score
+    if score < 0:
+        score = 0
 
     score = round(score, 2)
-
-    if score > 100:
-        score = 100
 
     summary = generate_summary(
         score,
@@ -255,7 +244,6 @@ async def analyze_resume(
     suggestions = generate_suggestions(
         missing_keywords,
         experience_years,
-        score,
         resume_sections
     )
 
@@ -264,9 +252,9 @@ async def analyze_resume(
         "matched_skills": matched_skills,
         "missing_keywords": missing_keywords,
         "experience": experience_years,
-        "resume_preview": resume_text[:1000],
-        "job_description": job_description,
         "resume_sections": resume_sections,
         "summary": summary,
         "suggestions": suggestions,
+        "resume_preview": resume_text[:500],
+        "job_description": job_description
     }

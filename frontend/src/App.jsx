@@ -161,7 +161,6 @@ function App() {
             </p>
 
             <div className="mb-10">
-              z
               <h3 className="text-slate-400 text-3xl mb-5">
                 AI Resume Feedback
               </h3>
