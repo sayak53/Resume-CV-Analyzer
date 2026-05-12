@@ -179,6 +179,11 @@ def generate_suggestions(
             "Add an Experience section to improve ATS impact."
         )
 
+    if not resume_sections["education"]:
+        suggestions.append(
+            "Add an Education section to improve resume completeness."
+        )
+
     if not resume_sections["certifications"]:
         suggestions.append(
             "Adding certifications can improve your resume credibility."
@@ -212,12 +217,34 @@ async def analyze_resume(
 
     resume_sections = check_resume_sections(resume_text)
 
+    score = 0
+
+    # Skills Score (70%)
     if len(jd_skills) > 0:
-        score = (len(matched_skills) / len(jd_skills)) * 100
+        skills_score = (
+            len(matched_skills) / len(jd_skills)
+        ) * 70
     else:
-        score = 0
+        skills_score = 0
+
+    score += skills_score
+
+    # Experience Section (10%)
+    if resume_sections["experience"]:
+        score += 10
+
+    # Education Section (10%)
+    if resume_sections["education"]:
+        score += 10
+
+    # Projects Section (10%)
+    if resume_sections["projects"]:
+        score += 10
 
     score = round(score, 2)
+
+    if score > 100:
+        score = 100
 
     summary = generate_summary(
         score,
