@@ -202,6 +202,23 @@ function App() {
               </div>
             </div>
 
+            {result.suggestions && result.suggestions.length > 0 && (
+              <div className="mb-10">
+                <h3 className="text-yellow-400 text-3xl mb-6">Suggestions</h3>
+
+                <div className="space-y-4">
+                  {result.suggestions.map((suggestion, index) => (
+                    <div
+                      key={index}
+                      className="bg-yellow-500/10 border border-yellow-500/30 text-yellow-200 px-5 py-4 rounded-2xl text-lg"
+                    >
+                      ⚠ {suggestion}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div>
               <h3 className="text-slate-400 text-3xl mb-5">Resume Preview</h3>
 
