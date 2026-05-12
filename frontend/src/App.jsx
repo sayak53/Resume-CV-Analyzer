@@ -159,6 +159,19 @@ function App() {
                 {result.experience} Years
               </span>
             </p>
+
+            <div className="mb-10">
+              <h3 className="text-slate-400 text-3xl mb-5">
+                AI Resume Feedback
+              </h3>
+
+              <div className="bg-gradient-to-r from-blue-900/40 to-slate-900 border border-blue-700 rounded-3xl p-6">
+                <p className="text-slate-200 text-xl leading-10">
+                  {result.summary}
+                </p>
+              </div>
+            </div>
+
             <div className="mb-10">
               <h3 className="text-slate-400 text-3xl mb-5">Resume Sections</h3>
 
