@@ -41,17 +41,15 @@ app.add_middleware(
 
 
 def extract_text(file):
-
     reader = PdfReader(file)
 
     text = ""
 
     for page in reader.pages:
-
         extracted = page.extract_text()
 
         if extracted:
-            text += extracted
+            text += extracted + " "
 
     return text
 
@@ -79,15 +77,13 @@ def extract_experience(text):
     matches = re.findall(pattern, text.lower())
 
     if matches:
-
         years = [int(year) for year in matches]
-
         return max(years)
 
     return 0
 
 
-def detect_resume_sections(text):
+def check_resume_sections(text):
 
     text = text.lower()
 
@@ -99,64 +95,82 @@ def detect_resume_sections(text):
         "certifications": False,
     }
 
-    if "skills" in text:
+    if re.search(r"\bskills\b", text):
         sections["skills"] = True
 
-    if "project" in text or "projects" in text:
+    if re.search(r"\bprojects\b", text):
         sections["projects"] = True
 
-    if "education" in text:
+    if re.search(r"\beducation\b", text):
         sections["education"] = True
 
-    if "experience" in text:
+    if re.search(r"\bexperience\b", text):
         sections["experience"] = True
 
-    if "certification" in text or "certifications" in text:
+    if re.search(r"\bcertifications\b|\bcertificates\b", text):
         sections["certifications"] = True
 
     return sections
 
 
-def generate_summary(score, matched_skills, missing_keywords, experience):
-
-    summary = ""
+def generate_summary(score, matched_skills, experience):
 
     if score >= 75:
-        summary += "Your resume is highly aligned with the job description. "
-
+        level = "highly aligned"
     elif score >= 50:
-        summary += "Your resume matches the job description moderately well. "
-
+        level = "moderately aligned"
     else:
-        summary += "Your resume has a low match with the job description. "
+        level = "needs improvement"
 
-    if len(matched_skills) > 0:
+    skills_text = ", ".join(matched_skills[:5])
 
-        summary += (
-            "Strong matching skills include: "
-            + ", ".join(matched_skills)
-            + ". "
-        )
+    if not skills_text:
+        skills_text = "no major matching skills"
 
-    if len(missing_keywords) > 0:
-
-        summary += (
-            "You may improve your resume by adding skills or projects related to: "
-            + ", ".join(missing_keywords)
-            + ". "
-        )
-
-    if experience == 0:
-
-        summary += (
-            "Adding internships, freelance work, or personal projects may improve your profile."
-        )
-
-    else:
-
-        summary += f"You have {experience} years of experience."
+    summary = (
+        f"Your resume is {level} with the job description. "
+        f"Strong matching skills include: {skills_text}. "
+        f"You have {experience} years of experience."
+    )
 
     return summary
+
+
+def generate_suggestions(
+    missing_keywords,
+    experience_years,
+    score,
+    resume_sections
+):
+
+    suggestions = []
+
+    for keyword in missing_keywords:
+        suggestions.append(
+            f"Try adding projects or experience related to '{keyword}'."
+        )
+
+    if experience_years == 0:
+        suggestions.append(
+            "Add internships, freelance work, or personal projects to showcase experience."
+        )
+
+    if score < 50:
+        suggestions.append(
+            "Your resume matches less than 50% of the job description. Consider improving your skills section."
+        )
+
+    if not resume_sections["projects"]:
+        suggestions.append(
+            "Add a dedicated Projects section to strengthen your resume."
+        )
+
+    if not resume_sections["certifications"]:
+        suggestions.append(
+            "Adding certifications can improve your resume credibility."
+        )
+
+    return suggestions
 
 
 @app.get("/")
@@ -174,8 +188,6 @@ async def analyze_resume(
 
     experience_years = extract_experience(resume_text)
 
-    resume_sections = detect_resume_sections(resume_text)
-
     resume_skills = extract_skills(resume_text)
 
     jd_skills = extract_skills(job_description)
@@ -183,6 +195,8 @@ async def analyze_resume(
     matched_skills = list(set(resume_skills) & set(jd_skills))
 
     missing_keywords = list(set(jd_skills) - set(resume_skills))
+
+    resume_sections = check_resume_sections(resume_text)
 
     if len(jd_skills) > 0:
         score = (len(matched_skills) / len(jd_skills)) * 100
@@ -194,38 +208,24 @@ async def analyze_resume(
     summary = generate_summary(
         score,
         matched_skills,
-        missing_keywords,
         experience_years
     )
 
-    suggestions = []
-
-    for keyword in missing_keywords:
-
-        suggestions.append(
-            f"Try adding projects or experience related to '{keyword}'."
-        )
-
-    if experience_years == 0:
-
-        suggestions.append(
-            "Add internships, freelance work, or personal projects to showcase experience."
-        )
-
-    if score < 50:
-
-        suggestions.append(
-            "Your resume matches less than 50% of the job description. Consider improving your skills section."
-        )
+    suggestions = generate_suggestions(
+        missing_keywords,
+        experience_years,
+        score,
+        resume_sections
+    )
 
     return {
         "score": score,
         "matched_skills": matched_skills,
         "missing_keywords": missing_keywords,
         "experience": experience_years,
+        "resume_preview": resume_text[:1000],
+        "job_description": job_description,
         "resume_sections": resume_sections,
-        "suggestions": suggestions,
         "summary": summary,
-        "resume_preview": resume_text[:800],
-        "job_description": job_description
+        "suggestions": suggestions,
     }
