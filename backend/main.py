@@ -104,8 +104,17 @@ def check_resume_sections(text):
     if re.search(r"\beducation\b", text):
         sections["education"] = True
 
-    if re.search(r"\bexperience\b", text):
-        sections["experience"] = True
+    experience_patterns = [
+        r"\bwork experience\b",
+        r"\bprofessional experience\b",
+        r"\bemployment history\b",
+        r"\binternship experience\b",
+    ]
+
+    for pattern in experience_patterns:
+        if re.search(pattern, text):
+            sections["experience"] = True
+            break
 
     if re.search(r"\bcertifications\b|\bcertificates\b", text):
         sections["certifications"] = True
@@ -163,6 +172,11 @@ def generate_suggestions(
     if not resume_sections["projects"]:
         suggestions.append(
             "Add a dedicated Projects section to strengthen your resume."
+        )
+
+    if not resume_sections["experience"]:
+        suggestions.append(
+            "Add an Experience section to improve ATS impact."
         )
 
     if not resume_sections["certifications"]:
