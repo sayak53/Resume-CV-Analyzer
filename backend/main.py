@@ -116,11 +116,39 @@ async def analyze_resume(
     else:
         score = 0
 
+    # -----------------------------
+    # Suggestions Logic
+    # -----------------------------
+
+    suggestions = []
+
+    if missing_keywords:
+        for keyword in missing_keywords:
+            suggestions.append(
+                f"Try adding projects or experience related to '{keyword}'."
+            )
+
+    if experience_years == 0:
+        suggestions.append(
+            "Add internships, freelance work, or personal projects to showcase experience."
+        )
+
+    if score < 50:
+        suggestions.append(
+            "Your resume matches less than 50% of the job description. Consider improving your skills section."
+        )
+
+    if "project" not in resume_text.lower():
+        suggestions.append(
+            "Add a dedicated Projects section to strengthen your resume."
+        )
+
     return {
         "score": round(score, 2),
         "matched_skills": matched_skills,
         "missing_keywords": missing_keywords,
         "experience": experience_years,
+        "suggestions": suggestions,
         "resume_preview": resume_text[:500],
         "job_description": job_description
     }
