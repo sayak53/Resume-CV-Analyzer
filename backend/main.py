@@ -138,6 +138,9 @@ SKILL_ALIASES = {
     "artificial intelligence": ["ai"],
     "github": ["git hub"],
     "nextjs": ["next js", "next.js"],
+
+    "html": ["html5"],
+    "css": ["css3"],
 }
 
 app.add_middleware(
