@@ -5,7 +5,10 @@ import re
 
 app = FastAPI()
 
-# Weighted Skills Database
+# =========================
+# WEIGHTED SKILLS DATABASE
+# =========================
+
 SKILLS_DB = {
     "python": 10,
     "java": 9,
@@ -20,6 +23,7 @@ SKILLS_DB = {
     "mysql": 7,
     "mongodb": 7,
     "postgresql": 8,
+    "sqlite": 6,
     "fastapi": 8,
     "django": 8,
     "flask": 7,
@@ -32,10 +36,16 @@ SKILLS_DB = {
     "docker": 8,
     "kubernetes": 9,
     "aws": 9,
+    "tailwind": 5,
+    "bootstrap": 5,
 }
 
-# Skill Categories
+# =========================
+# SKILL CATEGORIES
+# =========================
+
 SKILL_CATEGORIES = {
+
     "Frontend": [
         "react",
         "nextjs",
@@ -43,6 +53,8 @@ SKILL_CATEGORIES = {
         "css",
         "javascript",
         "typescript",
+        "tailwind",
+        "bootstrap",
     ],
 
     "Backend": [
@@ -59,6 +71,7 @@ SKILL_CATEGORIES = {
         "mysql",
         "mongodb",
         "postgresql",
+        "sqlite",
         "dbms",
     ],
 
@@ -77,7 +90,10 @@ SKILL_CATEGORIES = {
     ],
 }
 
-# Role-Based Skill Mapping
+# =========================
+# ROLE-BASED SKILLS
+# =========================
+
 ROLE_KEYWORDS = {
 
     "frontend developer": [
@@ -127,21 +143,80 @@ ROLE_KEYWORDS = {
     ],
 }
 
-# Semantic Skill Aliases
+# =========================
+# SKILL ALIASES
+# =========================
+
 SKILL_ALIASES = {
+
     "nodejs": ["node js", "node.js"],
+
     "react": ["react js", "reactjs"],
+
     "javascript": ["js"],
+
     "typescript": ["ts"],
+
     "postgresql": ["postgres", "postgre"],
+
     "machine learning": ["ml"],
+
     "artificial intelligence": ["ai"],
+
     "github": ["git hub"],
+
     "nextjs": ["next js", "next.js"],
 
     "html": ["html5"],
+
     "css": ["css3"],
 }
+
+# =========================
+# SUBSTITUTE SKILLS
+# =========================
+
+SKILL_SUBSTITUTES = {
+
+    "sql": [
+        "mysql",
+        "postgresql",
+        "mongodb",
+        "sqlite",
+    ],
+
+    "fastapi": [
+        "django",
+        "flask",
+        "nodejs",
+    ],
+
+    "flask": [
+        "django",
+        "fastapi",
+        "nodejs",
+    ],
+
+    "django": [
+        "flask",
+        "fastapi",
+        "nodejs",
+    ],
+
+    "html": [
+        "react",
+        "nextjs",
+    ],
+
+    "css": [
+        "tailwind",
+        "bootstrap",
+    ],
+}
+
+# =========================
+# CORS
+# =========================
 
 app.add_middleware(
     CORSMiddleware,
@@ -151,6 +226,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# =========================
+# PDF TEXT EXTRACTION
+# =========================
 
 def extract_text(file):
 
@@ -167,6 +245,9 @@ def extract_text(file):
 
     return text
 
+# =========================
+# SKILL EXTRACTION
+# =========================
 
 def extract_skills(text):
 
@@ -174,7 +255,7 @@ def extract_skills(text):
 
     found_skills = set()
 
-    # Direct Skill Matching
+    # DIRECT SKILL MATCHING
     for skill in SKILLS_DB.keys():
 
         pattern = r"\b" + re.escape(skill) + r"\b"
@@ -182,7 +263,7 @@ def extract_skills(text):
         if re.search(pattern, text):
             found_skills.add(skill)
 
-    # Alias Matching
+    # ALIAS MATCHING
     for main_skill, aliases in SKILL_ALIASES.items():
 
         for alias in aliases:
@@ -194,6 +275,9 @@ def extract_skills(text):
 
     return list(found_skills)
 
+# =========================
+# ROLE-BASED SKILLS
+# =========================
 
 def extract_role_based_skills(text):
 
@@ -209,6 +293,9 @@ def extract_role_based_skills(text):
 
     return detected_skills
 
+# =========================
+# EXPERIENCE EXTRACTION
+# =========================
 
 def extract_experience(text):
 
@@ -234,19 +321,32 @@ def extract_experience(text):
 
     return 0
 
+# =========================
+# RESUME SECTIONS CHECK
+# =========================
 
 def check_resume_sections(text):
 
     text = text.lower()
 
     return {
+
         "skills": "skills" in text,
-        "projects": "project" in text or "projects" in text,
-        "education": "education" in text,
+
+        "projects": (
+            "project" in text
+            or "projects" in text
+        ),
+
+        "education": (
+            "education" in text
+        ),
+
         "experience": (
             "experience" in text
             and extract_experience(text) > 0
         ),
+
         "certifications": (
             "certification" in text
             or "certifications" in text
@@ -254,6 +354,9 @@ def check_resume_sections(text):
         ),
     }
 
+# =========================
+# SKILL CATEGORIZATION
+# =========================
 
 def categorize_skills(skills):
 
@@ -262,7 +365,9 @@ def categorize_skills(skills):
     for category, category_skills in SKILL_CATEGORIES.items():
 
         matched = [
+
             skill for skill in skills
+
             if skill in category_skills
         ]
 
@@ -271,33 +376,48 @@ def categorize_skills(skills):
 
     return categorized
 
+# =========================
+# AI SUMMARY
+# =========================
 
-def generate_summary(score, matched_skills, experience):
+def generate_summary(
+    score,
+    matched_skills,
+    experience
+):
 
     if score >= 80:
 
         return (
-            f"Your resume is highly aligned with the job description. "
-            f"Strong matching skills include: {', '.join(matched_skills)}. "
+            f"Your resume is highly aligned with the "
+            f"job description. Strong matching skills "
+            f"include: {', '.join(matched_skills)}. "
             f"You have {experience} years of experience."
         )
 
     elif score >= 50:
 
         return (
-            f"Your resume matches many important job requirements. "
-            f"You should improve a few missing skills to increase your ATS score."
+            f"Your resume matches many important job "
+            f"requirements. You should improve a few "
+            f"missing skills to increase your ATS score."
         )
 
     else:
 
         return (
-            f"Your resume currently has a low match with the job description. "
-            f"Consider improving your technical skills, projects, and experience sections."
+            f"Your resume currently has a low match "
+            f"with the job description. Consider "
+            f"improving your technical skills, "
+            f"projects, and experience sections."
         )
 
+# =========================
+# SUGGESTIONS
+# =========================
 
 def generate_suggestions(
+
     missing_keywords,
     experience_years,
     resume_sections
@@ -308,57 +428,81 @@ def generate_suggestions(
     for keyword in missing_keywords:
 
         suggestions.append(
-            f"Try adding projects or experience related to '{keyword}'."
+            f"Try adding projects or experience "
+            f"related to '{keyword}'."
         )
 
     if experience_years == 0:
 
         suggestions.append(
-            "Your resume lacks professional experience. Add internships, freelance work, open-source contributions, or personal projects."
+            "Your resume lacks professional experience. "
+            "Add internships, freelance work, "
+            "open-source contributions, or personal projects."
         )
 
     if not resume_sections["projects"]:
 
         suggestions.append(
-            "Add a strong projects section with real-world applications."
+            "Add a strong projects section with "
+            "real-world applications."
         )
 
     if not resume_sections["education"]:
 
         suggestions.append(
-            "Include your education details for better resume completeness."
+            "Include your education details for "
+            "better resume completeness."
         )
 
     if not resume_sections["certifications"]:
 
         suggestions.append(
-            "Adding certifications can improve resume credibility."
+            "Adding certifications can improve "
+            "resume credibility."
         )
 
     return suggestions
 
+# =========================
+# HOME ROUTE
+# =========================
 
 @app.get("/")
 def home():
 
-    return {"message": "Backend is running 🚀"}
+    return {
+        "message": "Backend is running 🚀"
+    }
 
+# =========================
+# MAIN ANALYSIS API
+# =========================
 
 @app.post("/analyze/")
 async def analyze_resume(
+
     resume: UploadFile = File(...),
+
     job_description: str = Form(...)
 ):
 
     resume_text = extract_text(resume.file)
 
-    experience_years = extract_experience(resume_text)
+    experience_years = extract_experience(
+        resume_text
+    )
 
-    resume_sections = check_resume_sections(resume_text)
+    resume_sections = check_resume_sections(
+        resume_text
+    )
 
-    resume_skills = extract_skills(resume_text)
+    resume_skills = extract_skills(
+        resume_text
+    )
 
-    jd_skills = extract_skills(job_description)
+    jd_skills = extract_skills(
+        job_description
+    )
 
     role_based_skills = extract_role_based_skills(
         job_description
@@ -372,11 +516,36 @@ async def analyze_resume(
         set(resume_skills) & set(jd_skills)
     )
 
-    missing_keywords = list(
-        set(jd_skills) - set(resume_skills)
-    )
+    # =========================
+    # SMART MISSING SKILLS
+    # =========================
 
-    # Categorized Skills
+    missing_keywords = []
+
+    for skill in jd_skills:
+
+        if skill in resume_skills:
+            continue
+
+        substitutes = SKILL_SUBSTITUTES.get(
+            skill,
+            []
+        )
+
+        substitute_found = any(
+
+            substitute in resume_skills
+
+            for substitute in substitutes
+        )
+
+        if not substitute_found:
+            missing_keywords.append(skill)
+
+    # =========================
+    # CATEGORY GROUPING
+    # =========================
+
     categorized_matched_skills = categorize_skills(
         matched_skills
     )
@@ -385,7 +554,10 @@ async def analyze_resume(
         missing_keywords
     )
 
-    # Weighted Score Calculation
+    # =========================
+    # WEIGHTED SCORE
+    # =========================
+
     total_possible_score = sum(
         SKILLS_DB[skill]
         for skill in jd_skills
@@ -405,7 +577,10 @@ async def analyze_resume(
     else:
         score = 0
 
-    # Resume Quality Penalties
+    # =========================
+    # QUALITY PENALTIES
+    # =========================
+
     if experience_years == 0:
         score -= 10
 
@@ -415,11 +590,14 @@ async def analyze_resume(
     if not resume_sections["projects"]:
         score -= 5
 
-    # Prevent Negative Score
     if score < 0:
         score = 0
 
     score = round(score, 2)
+
+    # =========================
+    # SUMMARY & SUGGESTIONS
+    # =========================
 
     summary = generate_summary(
         score,
@@ -434,15 +612,28 @@ async def analyze_resume(
     )
 
     return {
+
         "score": score,
+
         "matched_skills": matched_skills,
+
         "missing_keywords": missing_keywords,
-        "categorized_matched_skills": categorized_matched_skills,
-        "categorized_missing_skills": categorized_missing_skills,
+
+        "categorized_matched_skills":
+            categorized_matched_skills,
+
+        "categorized_missing_skills":
+            categorized_missing_skills,
+
         "experience": experience_years,
+
         "resume_sections": resume_sections,
+
         "summary": summary,
+
         "suggestions": suggestions,
+
         "resume_preview": resume_text[:500],
-        "job_description": job_description
+
+        "job_description": job_description,
     }
