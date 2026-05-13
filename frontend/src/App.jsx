@@ -239,45 +239,77 @@ function App() {
             </div>
 
             <div className="mb-10">
-              <h3 className="text-slate-400 text-3xl mb-5">Missing Keywords</h3>
+              <h3 className="text-red-400 text-3xl mb-6">
+                Missing Skills by Category
+              </h3>
 
-              <div className="flex flex-wrap gap-4">
-                {result.missing_keywords.length > 0 ? (
-                  result.missing_keywords.map((keyword, index) => (
-                    <span
-                      key={index}
-                      className="bg-red-900/40 border border-red-600 text-red-300 px-6 py-3 rounded-full text-lg"
-                    >
-                      {keyword}
-                    </span>
-                  ))
-                ) : (
-                  <p className="text-green-400 text-2xl font-semibold">
-                    No missing keywords 🎉
-                  </p>
-                )}
-              </div>
+              {Object.keys(result.categorized_missing_skills).length > 0 ? (
+                <div className="space-y-6">
+                  {Object.entries(result.categorized_missing_skills).map(
+                    ([category, skills]) => (
+                      <div
+                        key={category}
+                        className="bg-red-900/10 border border-red-700 rounded-3xl p-5"
+                      >
+                        <h4 className="text-red-300 text-2xl font-bold mb-4">
+                          {category}
+                        </h4>
+
+                        <div className="flex flex-wrap gap-4">
+                          {skills.map((skill, index) => (
+                            <span
+                              key={index}
+                              className="bg-red-900/40 border border-red-600 text-red-300 px-5 py-2 rounded-full text-lg"
+                            >
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ),
+                  )}
+                </div>
+              ) : (
+                <p className="text-green-400 text-2xl font-semibold">
+                  No missing skills 🎉
+                </p>
+              )}
             </div>
 
             <div className="mb-10">
-              <h3 className="text-slate-400 text-3xl mb-5">Matched Skills</h3>
+              <h3 className="text-green-400 text-3xl mb-6">
+                Matched Skills by Category
+              </h3>
 
-              <div className="flex flex-wrap gap-4">
-                {result.matched_skills.length > 0 ? (
-                  result.matched_skills.map((skill, index) => (
-                    <span
-                      key={index}
-                      className="bg-green-900/30 border border-green-600 text-green-300 px-6 py-3 rounded-full text-lg"
-                    >
-                      {skill}
-                    </span>
-                  ))
-                ) : (
-                  <p className="text-red-400 text-xl">
-                    No matched skills found
-                  </p>
-                )}
-              </div>
+              {Object.keys(result.categorized_matched_skills).length > 0 ? (
+                <div className="space-y-6">
+                  {Object.entries(result.categorized_matched_skills).map(
+                    ([category, skills]) => (
+                      <div
+                        key={category}
+                        className="bg-green-900/10 border border-green-700 rounded-3xl p-5"
+                      >
+                        <h4 className="text-green-300 text-2xl font-bold mb-4">
+                          {category}
+                        </h4>
+
+                        <div className="flex flex-wrap gap-4">
+                          {skills.map((skill, index) => (
+                            <span
+                              key={index}
+                              className="bg-green-900/30 border border-green-600 text-green-300 px-5 py-2 rounded-full text-lg"
+                            >
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ),
+                  )}
+                </div>
+              ) : (
+                <p className="text-red-400 text-xl">No matched skills found</p>
+              )}
             </div>
 
             {result.suggestions && result.suggestions.length > 0 && (
