@@ -77,6 +77,56 @@ SKILL_CATEGORIES = {
     ],
 }
 
+# Role-Based Skill Mapping
+ROLE_KEYWORDS = {
+
+    "frontend developer": [
+        "react",
+        "html",
+        "css",
+        "javascript",
+        "typescript",
+        "nextjs",
+    ],
+
+    "backend developer": [
+        "python",
+        "django",
+        "flask",
+        "fastapi",
+        "nodejs",
+        "sql",
+    ],
+
+    "full stack developer": [
+        "react",
+        "javascript",
+        "nodejs",
+        "python",
+        "sql",
+    ],
+
+    "devops engineer": [
+        "docker",
+        "kubernetes",
+        "aws",
+        "git",
+    ],
+
+    "machine learning engineer": [
+        "python",
+        "machine learning",
+        "ai",
+    ],
+
+    "data analyst": [
+        "python",
+        "sql",
+        "mysql",
+        "postgresql",
+    ],
+}
+
 # Semantic Skill Aliases
 SKILL_ALIASES = {
     "nodejs": ["node js", "node.js"],
@@ -140,6 +190,21 @@ def extract_skills(text):
                 found_skills.add(main_skill)
 
     return list(found_skills)
+
+
+def extract_role_based_skills(text):
+
+    text = text.lower()
+
+    detected_skills = []
+
+    for role, role_skills in ROLE_KEYWORDS.items():
+
+        if role in text:
+
+            detected_skills.extend(role_skills)
+
+    return detected_skills
 
 
 def extract_experience(text):
@@ -291,6 +356,14 @@ async def analyze_resume(
     resume_skills = extract_skills(resume_text)
 
     jd_skills = extract_skills(job_description)
+
+    role_based_skills = extract_role_based_skills(
+        job_description
+    )
+
+    jd_skills.extend(role_based_skills)
+
+    jd_skills = list(set(jd_skills))
 
     matched_skills = list(
         set(resume_skills) & set(jd_skills)
