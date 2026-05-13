@@ -12,15 +12,19 @@ SKILLS_DB = {
     "javascript": 9,
     "react": 9,
     "nodejs": 8,
+    "nextjs": 8,
+    "typescript": 8,
     "html": 4,
     "css": 4,
     "sql": 8,
     "mysql": 7,
     "mongodb": 7,
+    "postgresql": 8,
     "fastapi": 8,
     "django": 8,
     "flask": 7,
     "machine learning": 10,
+    "artificial intelligence": 10,
     "ai": 10,
     "dbms": 6,
     "git": 3,
@@ -28,7 +32,19 @@ SKILLS_DB = {
     "docker": 8,
     "kubernetes": 9,
     "aws": 9,
-    "postgresql": 8,
+}
+
+# Semantic Skill Aliases
+SKILL_ALIASES = {
+    "nodejs": ["node js", "node.js"],
+    "react": ["react js", "reactjs"],
+    "javascript": ["js"],
+    "typescript": ["ts"],
+    "postgresql": ["postgres", "postgre"],
+    "machine learning": ["ml"],
+    "artificial intelligence": ["ai"],
+    "github": ["git hub"],
+    "nextjs": ["next js", "next.js"],
 }
 
 app.add_middleware(
@@ -41,15 +57,17 @@ app.add_middleware(
 
 
 def extract_text(file):
+
     reader = PdfReader(file)
 
     text = ""
 
     for page in reader.pages:
+
         extracted = page.extract_text()
 
         if extracted:
-            text += extracted
+            text += extracted + " "
 
     return text
 
@@ -58,16 +76,27 @@ def extract_skills(text):
 
     text = text.lower()
 
-    found_skills = []
+    found_skills = set()
 
+    # Direct Skill Matching
     for skill in SKILLS_DB.keys():
 
         pattern = r"\b" + re.escape(skill) + r"\b"
 
         if re.search(pattern, text):
-            found_skills.append(skill)
+            found_skills.add(skill)
 
-    return found_skills
+    # Alias Matching
+    for main_skill, aliases in SKILL_ALIASES.items():
+
+        for alias in aliases:
+
+            pattern = r"\b" + re.escape(alias) + r"\b"
+
+            if re.search(pattern, text):
+                found_skills.add(main_skill)
+
+    return list(found_skills)
 
 
 def extract_experience(text):
@@ -83,6 +112,7 @@ def extract_experience(text):
     years = []
 
     for pattern in patterns:
+
         matches = re.findall(pattern, text)
 
         for match in matches:
@@ -117,6 +147,7 @@ def check_resume_sections(text):
 def generate_summary(score, matched_skills, experience):
 
     if score >= 80:
+
         return (
             f"Your resume is highly aligned with the job description. "
             f"Strong matching skills include: {', '.join(matched_skills)}. "
@@ -124,12 +155,14 @@ def generate_summary(score, matched_skills, experience):
         )
 
     elif score >= 50:
+
         return (
             f"Your resume matches many important job requirements. "
             f"You should improve a few missing skills to increase your ATS score."
         )
 
     else:
+
         return (
             f"Your resume currently has a low match with the job description. "
             f"Consider improving your technical skills, projects, and experience sections."
@@ -145,26 +178,31 @@ def generate_suggestions(
     suggestions = []
 
     for keyword in missing_keywords:
+
         suggestions.append(
             f"Try adding projects or experience related to '{keyword}'."
         )
 
     if experience_years == 0:
+
         suggestions.append(
             "Your resume lacks professional experience. Add internships, freelance work, open-source contributions, or personal projects."
-    )
+        )
 
     if not resume_sections["projects"]:
+
         suggestions.append(
             "Add a strong projects section with real-world applications."
         )
 
     if not resume_sections["education"]:
+
         suggestions.append(
             "Include your education details for better resume completeness."
         )
 
     if not resume_sections["certifications"]:
+
         suggestions.append(
             "Adding certifications can improve resume credibility."
         )
@@ -174,6 +212,7 @@ def generate_suggestions(
 
 @app.get("/")
 def home():
+
     return {"message": "Backend is running 🚀"}
 
 
@@ -213,13 +252,15 @@ async def analyze_resume(
     )
 
     if total_possible_score > 0:
+
         score = (
             matched_score / total_possible_score
         ) * 100
+
     else:
         score = 0
 
-    # Resume quality penalties
+    # Resume Quality Penalties
     if experience_years == 0:
         score -= 10
 
@@ -229,7 +270,7 @@ async def analyze_resume(
     if not resume_sections["projects"]:
         score -= 5
 
-    # Prevent negative score
+    # Prevent Negative Score
     if score < 0:
         score = 0
 
