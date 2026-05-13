@@ -16,7 +16,7 @@ SKILLS_DB = {
     "react": 9,
     "nodejs": 8,
     "nextjs": 8,
-    "typescript": 8,
+    "typescript": 6,
     "html": 4,
     "css": 4,
     "sql": 8,
@@ -212,7 +212,24 @@ SKILL_SUBSTITUTES = {
         "tailwind",
         "bootstrap",
     ],
+
+    "typescript": [
+        "javascript",
+        "react",
+        "nextjs",
+    ],
 }
+
+# =========================
+# OPTIONAL SKILLS
+# =========================
+
+OPTIONAL_SKILLS = [
+    "typescript",
+    "tailwind",
+    "bootstrap",
+    "github",
+]
 
 # =========================
 # CORS
@@ -255,7 +272,7 @@ def extract_skills(text):
 
     found_skills = set()
 
-    # DIRECT SKILL MATCHING
+    # DIRECT MATCHING
     for skill in SKILLS_DB.keys():
 
         pattern = r"\b" + re.escape(skill) + r"\b"
@@ -288,7 +305,6 @@ def extract_role_based_skills(text):
     for role, role_skills in ROLE_KEYWORDS.items():
 
         if role in text:
-
             detected_skills.extend(role_skills)
 
     return detected_skills
@@ -322,7 +338,7 @@ def extract_experience(text):
     return 0
 
 # =========================
-# RESUME SECTIONS CHECK
+# RESUME SECTION CHECK
 # =========================
 
 def check_resume_sections(text):
@@ -331,7 +347,9 @@ def check_resume_sections(text):
 
     return {
 
-        "skills": "skills" in text,
+        "skills": (
+            "skills" in text
+        ),
 
         "projects": (
             "project" in text
@@ -398,18 +416,19 @@ def generate_summary(
     elif score >= 50:
 
         return (
-            f"Your resume matches many important job "
-            f"requirements. You should improve a few "
-            f"missing skills to increase your ATS score."
+            f"Your resume matches many important "
+            f"job requirements. You should improve "
+            f"a few missing skills to increase "
+            f"your ATS score."
         )
 
     else:
 
         return (
-            f"Your resume currently has a low match "
-            f"with the job description. Consider "
-            f"improving your technical skills, "
-            f"projects, and experience sections."
+            f"Your resume currently has a low "
+            f"match with the job description. "
+            f"Consider improving your technical "
+            f"skills, projects, and experience sections."
         )
 
 # =========================
@@ -435,23 +454,24 @@ def generate_suggestions(
     if experience_years == 0:
 
         suggestions.append(
-            "Your resume lacks professional experience. "
-            "Add internships, freelance work, "
-            "open-source contributions, or personal projects."
+            "Your resume lacks professional "
+            "experience. Add internships, "
+            "freelance work, open-source "
+            "contributions, or personal projects."
         )
 
     if not resume_sections["projects"]:
 
         suggestions.append(
-            "Add a strong projects section with "
-            "real-world applications."
+            "Add a strong projects section "
+            "with real-world applications."
         )
 
     if not resume_sections["education"]:
 
         suggestions.append(
-            "Include your education details for "
-            "better resume completeness."
+            "Include your education details "
+            "for better resume completeness."
         )
 
     if not resume_sections["certifications"]:
@@ -512,6 +532,10 @@ async def analyze_resume(
 
     jd_skills = list(set(jd_skills))
 
+    # =========================
+    # MATCHED SKILLS
+    # =========================
+
     matched_skills = list(
         set(resume_skills) & set(jd_skills)
     )
@@ -540,7 +564,9 @@ async def analyze_resume(
         )
 
         if not substitute_found:
-            missing_keywords.append(skill)
+
+            if skill not in OPTIONAL_SKILLS:
+                missing_keywords.append(skill)
 
     # =========================
     # CATEGORY GROUPING
