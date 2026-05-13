@@ -34,6 +34,49 @@ SKILLS_DB = {
     "aws": 9,
 }
 
+# Skill Categories
+SKILL_CATEGORIES = {
+    "Frontend": [
+        "react",
+        "nextjs",
+        "html",
+        "css",
+        "javascript",
+        "typescript",
+    ],
+
+    "Backend": [
+        "python",
+        "java",
+        "django",
+        "flask",
+        "fastapi",
+        "nodejs",
+    ],
+
+    "Database": [
+        "sql",
+        "mysql",
+        "mongodb",
+        "postgresql",
+        "dbms",
+    ],
+
+    "Cloud & DevOps": [
+        "aws",
+        "docker",
+        "kubernetes",
+        "git",
+        "github",
+    ],
+
+    "AI / ML": [
+        "machine learning",
+        "artificial intelligence",
+        "ai",
+    ],
+}
+
 # Semantic Skill Aliases
 SKILL_ALIASES = {
     "nodejs": ["node js", "node.js"],
@@ -144,6 +187,23 @@ def check_resume_sections(text):
     }
 
 
+def categorize_skills(skills):
+
+    categorized = {}
+
+    for category, category_skills in SKILL_CATEGORIES.items():
+
+        matched = [
+            skill for skill in skills
+            if skill in category_skills
+        ]
+
+        if matched:
+            categorized[category] = matched
+
+    return categorized
+
+
 def generate_summary(score, matched_skills, experience):
 
     if score >= 80:
@@ -240,6 +300,15 @@ async def analyze_resume(
         set(jd_skills) - set(resume_skills)
     )
 
+    # Categorized Skills
+    categorized_matched_skills = categorize_skills(
+        matched_skills
+    )
+
+    categorized_missing_skills = categorize_skills(
+        missing_keywords
+    )
+
     # Weighted Score Calculation
     total_possible_score = sum(
         SKILLS_DB[skill]
@@ -292,6 +361,8 @@ async def analyze_resume(
         "score": score,
         "matched_skills": matched_skills,
         "missing_keywords": missing_keywords,
+        "categorized_matched_skills": categorized_matched_skills,
+        "categorized_missing_skills": categorized_missing_skills,
         "experience": experience_years,
         "resume_sections": resume_sections,
         "summary": summary,
