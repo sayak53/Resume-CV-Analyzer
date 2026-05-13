@@ -581,27 +581,110 @@ async def analyze_resume(
     )
 
     # =========================
-    # WEIGHTED SCORE
+    #   SMART WEIGHTED SCORE
     # =========================
 
     total_possible_score = sum(
-        SKILLS_DB[skill]
-        for skill in jd_skills
+       SKILLS_DB[skill]
+       for skill in jd_skills
     )
 
-    matched_score = sum(
-        SKILLS_DB[skill]
-        for skill in matched_skills
-    )
+    matched_score = 0
+
+    for skill in jd_skills:
+
+       # =========================
+       # EXACT MATCH
+       # =========================
+
+       if skill in resume_skills:
+
+           matched_score += SKILLS_DB[skill]
+
+       else:
+
+           substitutes = SKILL_SUBSTITUTES.get(
+               skill,
+               []
+           )
+
+           substitute_found = any(
+
+               substitute in resume_skills
+
+               for substitute in substitutes
+           )
+
+           # =========================
+           # SUBSTITUTE MATCH
+           # =========================
+
+           if substitute_found:
+
+               matched_score += (
+                   SKILLS_DB[skill] * 0.7
+               )
+
+           else:
+
+               # =========================
+               # CATEGORY MATCH
+               # =========================
+
+               for category, category_skills in SKILL_CATEGORIES.items():
+
+                   if skill in category_skills:
+
+                       matched_in_category = [
+
+                           s for s in category_skills
+
+                           if s in resume_skills
+                       ]
+
+                       # strong category knowledge
+                       if len(matched_in_category) >= 3:
+
+                           matched_score += (
+                               SKILLS_DB[skill] * 0.5
+                           )
+
+                       break
+
+   # =========================
+   # FINAL SCORE
+   # =========================
 
     if total_possible_score > 0:
 
         score = (
             matched_score / total_possible_score
-        ) * 100
+        )  * 100
 
     else:
+
         score = 0
+
+   # =========================
+   # QUALITY PENALTIES
+   # =========================
+
+    if experience_years == 0:
+        score -= 10
+
+    if not resume_sections["education"]:
+        score -= 5
+
+    if not resume_sections["projects"]:
+        score -= 5
+ 
+    # =========================
+    # LIMIT SCORE
+    # =========================
+
+    score = max(0, min(score, 100))
+
+    score = round(score, 2)
 
     # =========================
     # QUALITY PENALTIES
