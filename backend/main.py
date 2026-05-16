@@ -317,6 +317,10 @@ def extract_experience(text):
 
     text = text.lower()
 
+    # =========================
+    # YEAR-BASED EXPERIENCE
+    # =========================
+
     patterns = [
         r"(\d+)\+?\s+years?",
         r"experience\s*:\s*(\d+)",
@@ -334,6 +338,33 @@ def extract_experience(text):
 
     if years:
         return max(years)
+
+    # =========================
+    # ROLE-BASED EXPERIENCE
+    # =========================
+
+    experience_keywords = [
+
+        "intern",
+        "internship",
+        "developer",
+        "software engineer",
+        "frontend developer",
+        "backend developer",
+        "full stack developer",
+        "freelance",
+        "freelancer",
+        "worked at",
+        "experience",
+        "open source",
+    ]
+
+    for keyword in experience_keywords:
+
+        if keyword in text:
+
+            # treat as beginner-level experience
+            return 1
 
     return 0
 
