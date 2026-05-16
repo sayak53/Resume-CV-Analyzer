@@ -478,7 +478,7 @@ def generate_suggestions(
             f"related to '{keyword}'."
         )
 
-    if experience_years == 0:
+    if experience_years == 0 and not has_practical_experience:
 
         suggestions.append(
             "Your resume lacks professional "
@@ -540,8 +540,8 @@ async def analyze_resume(
     )
     
     practical_experience = has_practical_experience(
-    resume_text
-   )
+        resume_text
+    )
 
     resume_sections = check_resume_sections(
         resume_text
@@ -721,7 +721,7 @@ async def analyze_resume(
     # QUALITY PENALTIES
     # =========================
 
-    if experience_years == 0:
+    if experience_years == 0 and not practical_experience:
         score -= 10
 
     if not resume_sections["education"]:
