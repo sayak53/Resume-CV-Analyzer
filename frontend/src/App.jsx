@@ -91,9 +91,16 @@ function App() {
         <button
           onClick={handleAnalyze}
           disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700 transition text-white text-2xl font-bold py-5 rounded-3xl mb-8"
+          className="w-full bg-blue-600 hover:bg-blue-700 transition text-white text-2xl font-bold py-5 rounded-3xl mb-8 flex items-center justify-center gap-3 disabled:opacity-70"
         >
-          {loading ? "Analyzing..." : "Analyze Resume"}
+          {loading ? (
+            <>
+              <div className="w-7 h-7 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+              <span>Analyzing Resume...</span>
+            </>
+          ) : (
+            "Analyze Resume"
+          )}
         </button>
 
         {result && (
